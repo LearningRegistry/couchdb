@@ -28,6 +28,8 @@
     decref/1,
     monitored_by/1,
 
+    last_activity/1,
+
     get_compacted_seq/1,
     get_del_doc_count/1,
     get_disk_version/1,
@@ -186,6 +188,10 @@ monitored_by(St) ->
         _ ->
             []
     end.
+
+
+last_activity(#st{fd = Fd}) ->
+    couch_file:get_last_read(Fd).
 
 
 get_compacted_seq(#st{header = Header}) ->
@@ -446,11 +452,11 @@ is_active_stream(_, _) ->
 
 
 fold_docs(St, UserFun, UserAcc, Options) ->
-    fold_docs_int(St#st.id_tree, UserFun, UserAcc, Options).
+    fold_docs_int(St, St#st.id_tree, UserFun, UserAcc, Options).
 
 
 fold_local_docs(St, UserFun, UserAcc, Options) ->
-    fold_docs_int(St#st.local_tree, UserFun, UserAcc, Options).
+    fold_docs_int(St, St#st.local_tree, UserFun, UserAcc, Options).
 
 
 fold_changes(St, SinceSeq, UserFun, UserAcc, Options) ->
@@ -839,7 +845,7 @@ active_size(#st{} = St, #size_info{} = SI) ->
     end, SI#size_info.active, Trees).
 
 
-fold_docs_int(Tree, UserFun, UserAcc, Options) ->
+fold_docs_int(St, Tree, UserFun, UserAcc, Options) ->
     Fun = case lists:member(include_deleted, Options) of
         true -> fun include_deleted/4;
         false -> fun skip_deleted/4
@@ -852,8 +858,10 @@ fold_docs_int(Tree, UserFun, UserAcc, Options) ->
     {ok, Reds, OutAcc} = couch_btree:fold(Tree, Fun, InAcc, Options),
     {_, {_, FinalUserAcc}} = OutAcc,
     case lists:member(include_reductions, Options) of
-        true ->
+        true when Tree == St#st.id_tree ->
             {ok, fold_docs_reduce_to_count(Reds), FinalUserAcc};
+        true when Tree == St#st.local_tree ->
+            {ok, 0, FinalUserAcc};
         false ->
             {ok, FinalUserAcc}
     end.
