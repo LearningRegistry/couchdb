@@ -209,6 +209,9 @@ close_db_if_idle(DbName) ->
 
 
 init([]) ->
+    % Mark pluggable storage engines as a supported feature
+    config:enable_feature('pluggable-storage-engines'),
+
     % read config and register for configuration changes
 
     % just stop if one of the config settings change. couch_server_sup
