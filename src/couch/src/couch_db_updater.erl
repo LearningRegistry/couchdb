@@ -168,7 +168,7 @@ handle_call({purge_docs, IdRevs}, _From, Db) ->
     {reply, {ok, PurgeSeq, PurgedIdRevs}, Db2, idle_limit()};
 
 handle_call(Msg, From, Db) ->
-    case couch_db_engine:handle_call(Msg, From, Db) of
+    case couch_db_engine:handle_db_updater_call(Msg, From, Db) of
         {reply, Resp, NewDb} ->
             {reply, Resp, NewDb, idle_limit()};
         Else ->
@@ -298,7 +298,7 @@ handle_info(timeout, #db{fd=Fd, name=DbName} = Db) ->
     {noreply, Db, hibernate};
 
 handle_info(Msg, Db) ->
-    case couch_db_engine:handle_info(Msg, Db) of
+    case couch_db_engine:handle_db_updater_info(Msg, Db) of
         {noreply, NewDb} ->
             {noreply, NewDb, idle_limit()};
         Else ->
