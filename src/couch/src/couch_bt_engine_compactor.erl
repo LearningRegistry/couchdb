@@ -203,6 +203,14 @@ copy_docs(St, #st{} = NewSt, MixedInfos, Retry) ->
         {NewRevTree, FinalAcc} = couch_key_tree:mapfold(fun
             ({RevPos, RevId}, #leaf{ptr=Sp}=Leaf, leaf, SizesAcc) ->
                 {Body, AttInfos} = copy_doc_attachments(St, Sp, NewSt),
+                % In the future, we should figure out how to do this for
+                % upgrade purposes.
+                EJsonBody = case is_binary(Body) of
+                    true ->
+                        couch_compress:decompress(Body);
+                    false ->
+                        Body
+                end,
                 Doc0 = #doc{
                     id = Info#full_doc_info.id,
                     revs = {RevPos, [RevId]},
@@ -211,7 +219,7 @@ copy_docs(St, #st{} = NewSt, MixedInfos, Retry) ->
                     atts = AttInfos
                 },
                 Doc1 = couch_bt_engine:serialize_doc(NewSt, Doc0),
-                ExternalSize = ?term_size(Doc1#doc.body),
+                ExternalSize = ?term_size(EJsonBody),
                 {ok, Doc2, ActiveSize} =
                         couch_bt_engine:write_doc_body(NewSt, Doc1),
                 AttSizes = [{element(3,A), element(4,A)} || A <- AttInfos],
