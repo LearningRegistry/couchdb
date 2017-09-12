@@ -62,7 +62,7 @@ all_test_() ->
                     fun should_return_404_for_delete_att_on_notadoc/1,
                     fun should_return_409_for_del_att_without_rev/1,
                     fun should_return_200_for_del_att_with_rev/1,
-                    fun should_return_409_for_put_att_nonexistent_rev/1
+                    fun should_return_409_for_put_att_nonexistent_rev/1,
                     fun should_return_400_for_bad_engine/1
                 ]
             }
