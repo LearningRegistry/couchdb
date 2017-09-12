@@ -101,11 +101,11 @@ cet_compact_with_everything() ->
 
     {ok, St7} = try
         [Att0, Att1, Att2, Att3, Att4] = test_engine_util:prep_atts(Engine, St6, [
-                {<<"ohai.txt">>, crypto:rand_bytes(2048)},
-                {<<"stuff.py">>, crypto:rand_bytes(32768)},
-                {<<"a.erl">>, crypto:rand_bytes(29)},
-                {<<"a.hrl">>, crypto:rand_bytes(5000)},
-                {<<"a.app">>, crypto:rand_bytes(400)}
+                {<<"ohai.txt">>, crypto:strong_rand_bytes(2048)},
+                {<<"stuff.py">>, crypto:strong_rand_bytes(32768)},
+                {<<"a.erl">>, crypto:strong_rand_bytes(29)},
+                {<<"a.hrl">>, crypto:strong_rand_bytes(5000)},
+                {<<"a.app">>, crypto:strong_rand_bytes(400)}
             ]),
 
         Actions4 = [

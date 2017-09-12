@@ -21,7 +21,7 @@
 cet_write_attachment() ->
     {ok, Engine, DbPath, St1} = test_engine_util:init_engine(dbpath),
 
-    AttBin = crypto:rand_bytes(32768),
+    AttBin = crypto:strong_rand_bytes(32768),
 
     try
         [Att0] = test_engine_util:prep_atts(Engine, St1, [
@@ -74,7 +74,7 @@ cet_write_attachment() ->
 cet_inactive_stream() ->
     {ok, Engine, DbPath, St1} = test_engine_util:init_engine(dbpath),
 
-    AttBin = crypto:rand_bytes(32768),
+    AttBin = crypto:strong_rand_bytes(32768),
 
     try
         [Att0] = test_engine_util:prep_atts(Engine, St1, [

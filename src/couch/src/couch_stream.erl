@@ -100,7 +100,7 @@ foldl(Engine, <<>>, Fun, Acc) ->
 foldl(Engine, Md5, UserFun, UserAcc) ->
     InitAcc = {crypto:hash_init(md5), UserFun, UserAcc},
     {Md5Acc, _, OutAcc} = foldl(Engine, fun foldl_md5/2, InitAcc),
-    Md5 = crypto:hash_final(md5, Md5Acc),
+    Md5 = crypto:hash_final(Md5Acc),
     OutAcc.
 
 
@@ -128,7 +128,7 @@ range_foldl(Engine, From, To, UserFun, UserAcc) when To >= From ->
 
 
 foldl_md5(Bin, {Md5Acc, UserFun, UserAcc}) ->
-    NewMd5Acc = crypto:hash_update(md5, Md5Acc, Bin),
+    NewMd5Acc = crypto:hash_update(Md5Acc, Bin),
     {NewMd5Acc, UserFun, UserFun(Bin, UserAcc)}.
 
 
@@ -238,7 +238,7 @@ handle_call({write, Bin}, _From, Stream) ->
         WriteBin2 ->
             NewEngine = do_write(Engine, WriteBin2),
             WrittenLen2 = WrittenLen + iolist_size(WriteBin2),
-            Md5_2 = crypto:hash_update(md5, Md5, WriteBin2)
+            Md5_2 = crypto:hash_update(Md5, WriteBin2)
         end,
 
         {reply, ok, Stream#stream{
