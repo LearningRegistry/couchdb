@@ -729,7 +729,7 @@ pair_purge_info(Old, New) ->
     end, Old).
 
 
-get_meta_body_size(Meta, Summary) ->
+get_meta_body_size(Meta) ->
     {ejson_size, ExtSize} = lists:keyfind(ejson_size, 1, Meta),
     ExtSize.
 

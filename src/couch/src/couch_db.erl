@@ -1171,7 +1171,7 @@ write_and_commit(#db{main_pid=Pid, user_ctx=Ctx}=Db, DocBuckets1,
 
 prepare_doc_summaries(Db, BucketList) ->
     [lists:map(
-        fun(#doc{atts = Atts} = Doc0) ->
+        fun(#doc{body = Body, atts = Atts} = Doc0) ->
             DiskAtts = [couch_att:to_disk_term(Att) || Att <- Atts],
             {ok, SizeInfo} = couch_att:size_info(Atts),
             AttsStream = case Atts of

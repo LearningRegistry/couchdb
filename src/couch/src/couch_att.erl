@@ -496,12 +496,12 @@ flush(Db, Att) ->
 
 
 flush_data(Db, Data, Att) when is_binary(Data) ->
-    AttName = fetch(name, Att),
-    MaxAttSize = max_attachment_size(),
     couch_db:with_stream(Db, Att, fun(OutputStream) ->
         couch_stream:write(OutputStream, Data)
     end);
 flush_data(Db, Fun, Att) when is_function(Fun) ->
+    AttName = fetch(name, Att),
+    MaxAttSize = max_attachment_size(),
     case fetch(att_len, Att) of
         undefined ->
             couch_db:with_stream(Db, Att, fun(OutputStream) ->
