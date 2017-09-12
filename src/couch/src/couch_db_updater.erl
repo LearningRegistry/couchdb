@@ -271,7 +271,7 @@ handle_info({'EXIT', _Pid, normal}, Db) ->
     {noreply, Db, idle_limit()};
 handle_info({'EXIT', _Pid, Reason}, Db) ->
     {stop, Reason, Db};
-handle_info(timeout, #db{fd=Fd, name=DbName} = Db) ->
+handle_info(timeout, #db{name=DbName} = Db) ->
     IdleLimitMSec = update_idle_limit_from_config(),
     case couch_db:is_idle(Db) of
         true ->
@@ -409,7 +409,7 @@ flush_trees(#db{} = Db,
                 % flushed to disk.
                 #doc{} = Doc ->
                     check_doc_atts(Db, Doc),
-                    ExternalSize = get_meta_body_size(Value#doc.meta, Summary),
+                    ExternalSize = get_meta_body_size(Value#doc.meta),
                     {size_info, AttSizeInfo} =
                             lists:keyfind(size_info, 1, Doc#doc.meta),
                     {ok, NewDoc, WrittenSize} =
@@ -730,12 +730,8 @@ pair_purge_info(Old, New) ->
 
 
 get_meta_body_size(Meta, Summary) ->
-    case lists:keyfind(ejson_size, 1, Meta) of
-        {ejson_size, ExternalSize} ->
-            ExternalSize;
-        false ->
-            ?term_size(couch_compress:decompress(Summary))
-    end.
+    {ejson_size, ExtSize} = lists:keyfind(ejson_size, 1, Meta),
+    ExtSize.
 
 
 default_security_object(<<"shards/", _/binary>>) ->
