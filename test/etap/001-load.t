@@ -17,7 +17,7 @@
 
 main(_) ->
     test_util:init_code_path(),
-    etap:plan(50),
+    etap:plan(length(Modules)),
     Modules = [
         couch_auth_cache,
         couch_api_wrap,
@@ -75,7 +75,7 @@ main(_) ->
 
     lists:foreach(
         fun(Module) ->
-            etap_can:loaded_ok(
+            etap:loaded_ok(
                 Module,
                 lists:concat(["Loaded: ", Module])
             )

@@ -80,7 +80,7 @@ test_by_doc_ids() ->
 
     {ok, _Rev1} = save_doc(Db, {[{<<"_id">>, <<"doc1">>}]}),
     {ok, _Rev2} = save_doc(Db, {[{<<"_id">>, <<"doc2">>}]}),
-    {ok, Rev3} = save_doc(Db, {[{<<"_id">>, <<"doc3">>}]}),
+    {ok, _} = save_doc(Db, {[{<<"_id">>, <<"doc3">>}]}),
     {ok, _Rev4} = save_doc(Db, {[{<<"_id">>, <<"doc4">>}]}),
     {ok, _Rev5} = save_doc(Db, {[{<<"_id">>, <<"doc5">>}]}),
     {ok, _Rev3_2} = save_doc(Db, {[{<<"_id">>, <<"doc3">>}, {<<"_rev">>, Rev3}]}),
