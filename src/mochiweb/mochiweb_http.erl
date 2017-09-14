@@ -148,13 +148,16 @@ headers(Socket, Request, Headers, Body, HeaderCount) ->
         exit(normal)
     end.
 
+call_body({M, F, A}, Req) ->
+    erlang:apply(M, F, [Req | A]);
 call_body({M, F}, Req) ->
     M:F(Req);
 call_body(Body, Req) ->
     Body(Req).
 
 handle_invalid_request(Socket) ->
-    handle_invalid_request(Socket, {'GET', {abs_path, "/"}, {0,9}}, []).
+    handle_invalid_request(Socket, {'GET', {abs_path, "/"}, {0,9}}, []),
+    exit(normal).
 
 handle_invalid_request(Socket, Request, RevHeaders) ->
     Req = new_request(Socket, Request, RevHeaders),
@@ -218,8 +221,8 @@ range_skip_length(Spec, Size) ->
 %%
 %% Tests
 %%
--include_lib("eunit/include/eunit.hrl").
 -ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
 
 range_test() ->
     %% valid, single ranges

@@ -14,7 +14,7 @@ if USE_NATIVE_MOCHIJSON
 MOCHIJSON_ERLC_FLAGS=+native
 endif
 
-mochiwebebindir = $(localerlanglibdir)/mochiweb-1.4.1/ebin
+mochiwebebindir = $(localerlanglibdir)/mochiweb-1.5.2/ebin
 
 mochiweb_file_collection = \
 	mochifmt.erl \
