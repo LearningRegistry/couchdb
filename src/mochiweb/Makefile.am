@@ -14,7 +14,7 @@ if USE_NATIVE_MOCHIJSON
 MOCHIJSON_ERLC_FLAGS=+native
 endif
 
-mochiwebebindir = $(localerlanglibdir)/mochiweb-1.5.2/ebin
+mochiwebebindir = $(localerlanglibdir)/mochiweb-2.4.2/ebin
 
 mochiweb_file_collection = \
 	mochifmt.erl \
@@ -33,7 +33,6 @@ mochiweb_file_collection = \
 	mochiweb.app.src \
 	mochiweb.erl \
 	mochiweb_acceptor.erl \
-	mochiweb_app.erl \
 	mochiweb_charref.erl \
 	mochiweb_cookies.erl \
 	mochiweb_cover.erl \
@@ -47,10 +46,8 @@ mochiweb_file_collection = \
 	mochiweb_request.erl \
 	mochiweb_request_tests.erl \
 	mochiweb_response.erl \
-	mochiweb_skel.erl \
 	mochiweb_socket.erl \
 	mochiweb_socket_server.erl \
-	mochiweb_sup.erl \
 	mochiweb_util.erl \
 	reloader.erl
 
@@ -70,7 +67,6 @@ mochiwebebin_make_generated_file_list = \
 	mochiweb.app \
 	mochiweb.beam \
 	mochiweb_acceptor.beam \
-	mochiweb_app.beam \
 	mochiweb_charref.beam \
 	mochiweb_cookies.beam \
 	mochiweb_cover.beam \
@@ -82,11 +78,10 @@ mochiwebebin_make_generated_file_list = \
 	mochiweb_mime.beam \
 	mochiweb_multipart.beam \
 	mochiweb_request.beam \
+	mochiweb_request_tests.beam \
 	mochiweb_response.beam \
-	mochiweb_skel.beam \
 	mochiweb_socket.beam \
 	mochiweb_socket_server.beam \
-	mochiweb_sup.beam \
 	mochiweb_util.beam \
 	reloader.beam
 
