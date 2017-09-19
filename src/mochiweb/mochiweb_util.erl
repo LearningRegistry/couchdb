@@ -68,17 +68,11 @@ partition2(_S, _Sep) ->
 %% @spec safe_relative_path(string()) -> string() | undefined
 %% @doc Return the reduced version of a relative path or undefined if it
 %%      is not safe. safe relative paths can be joined with an absolute path
-%%      and will result in a subdirectory of the absolute path. Safe paths
-%%      never contain a backslash character.
+%%      and will result in a subdirectory of the absolute path.
 safe_relative_path("/" ++ _) ->
     undefined;
 safe_relative_path(P) ->
-    case string:chr(P, $\\) of
-        0 ->
-           safe_relative_path(P, []);
-        _ ->
-           undefined
-    end.
+    safe_relative_path(P, []).
 
 safe_relative_path("", Acc) ->
     case Acc of
@@ -821,7 +815,6 @@ safe_relative_path_test() ->
     undefined = safe_relative_path("../foo"),
     undefined = safe_relative_path("foo/../.."),
     undefined = safe_relative_path("foo//"),
-    undefined = safe_relative_path("foo\\bar"),
     ok.
 
 parse_qvalues_test() ->

@@ -6,9 +6,22 @@
 -module(mochiweb).
 -author('bob@mochimedia.com').
 
+-export([start/0, stop/0]).
 -export([new_request/1, new_response/1]).
 -export([all_loaded/0, all_loaded/1, reload/0]).
--export([ensure_started/1]).
+
+%% @spec start() -> ok
+%% @doc Start the MochiWeb server.
+start() ->
+    ensure_started(crypto),
+    application:start(mochiweb).
+
+%% @spec stop() -> ok
+%% @doc Stop the MochiWeb server.
+stop() ->
+    Res = application:stop(mochiweb),
+    application:stop(crypto),
+    Res.
 
 reload() ->
     [c:l(Module) || Module <- all_loaded()].
@@ -65,8 +78,8 @@ new_response({Request, Code, Headers}) ->
                           Code,
                           mochiweb_headers:make(Headers)).
 
-%% @spec ensure_started(App::atom()) -> ok
-%% @doc Start the given App if it has not been started already.
+%% Internal API
+
 ensure_started(App) ->
     case application:start(App) of
         ok ->
@@ -74,6 +87,7 @@ ensure_started(App) ->
         {error, {already_started, App}} ->
             ok
     end.
+
 
 %%
 %% Tests
@@ -98,7 +112,7 @@ with_server(Transport, ServerFun, ClientFun) ->
         ssl ->
             ServerOpts0 ++ [{ssl, true}, {ssl_opts, ssl_cert_opts()}]
     end,
-    {ok, Server} = mochiweb_http:start_link(ServerOpts),
+    {ok, Server} = mochiweb_http:start(ServerOpts),
     Port = mochiweb_socket_server:get(Server, port),
     Res = (catch ClientFun(Transport, Port)),
     mochiweb_http:stop(Server),
@@ -124,11 +138,11 @@ multiple_https_GET_test() ->
     do_GET(ssl, 3).
 
 hundred_http_GET_test_() -> % note the underscore
-    {timeout, ?LARGE_TIMEOUT,
+    {timeout, ?LARGE_TIMEOUT, 
      fun() -> ?assertEqual(ok, do_GET(plain,100)) end}.
 
 hundred_https_GET_test_() -> % note the underscore
-    {timeout, ?LARGE_TIMEOUT,
+    {timeout, ?LARGE_TIMEOUT, 
      fun() -> ?assertEqual(ok, do_GET(ssl,100)) end}.
 
 single_128_http_POST_test() ->
@@ -156,11 +170,11 @@ multiple_100K_https_POST_test() ->
     do_POST(ssl, 102400, 3).
 
 hundred_128_http_POST_test_() -> % note the underscore
-    {timeout, ?LARGE_TIMEOUT,
+    {timeout, ?LARGE_TIMEOUT, 
      fun() -> ?assertEqual(ok, do_POST(plain, 128, 100)) end}.
 
 hundred_128_https_POST_test_() -> % note the underscore
-    {timeout, ?LARGE_TIMEOUT,
+    {timeout, ?LARGE_TIMEOUT, 
      fun() -> ?assertEqual(ok, do_POST(ssl, 128, 100)) end}.
 
 do_GET(Transport, Times) ->

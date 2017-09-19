@@ -9,7 +9,7 @@
 
 -include("internal.hrl").
 
--export([start/1, start_link/1, stop/1]).
+-export([start/1, stop/1]).
 -export([init/1, handle_call/3, handle_cast/2, terminate/2, code_change/3,
          handle_info/2]).
 -export([get/2, set/3]).
@@ -33,22 +33,10 @@
 
 -define(is_old_state(State), not is_record(State, mochiweb_socket_server)).
 
-start_link(Options) ->
-    start_server(start_link, parse_options(Options)).
-
+start(State=#mochiweb_socket_server{}) ->
+    start_server(State);
 start(Options) ->
-    case lists:keytake(link, 1, Options) of
-        {value, {_Key, false}, Options1} ->
-            start_server(start, parse_options(Options1));
-        _ ->
-            %% TODO: https://github.com/mochi/mochiweb/issues/58
-            %%   [X] Phase 1: Add new APIs (Sep 2011)
-            %%   [_] Phase 2: Add deprecation warning
-            %%   [_] Phase 3: Change default to {link, false} and ignore link
-            %%   [_] Phase 4: Add deprecation warning for {link, _} option
-            %%   [_] Phase 5: Remove support for {link, _} option
-            start_link(Options)
-    end.
+    start(parse_options(Options)).
 
 get(Name, Property) ->
     gen_server:call(Name, {get, Property}).
@@ -73,8 +61,6 @@ stop(Options) ->
 
 %% Internal API
 
-parse_options(State=#mochiweb_socket_server{}) ->
-    State;
 parse_options(Options) ->
     parse_options(Options, #mochiweb_socket_server{}).
 
@@ -130,21 +116,21 @@ parse_options([{profile_fun, ProfileFun} | Rest], State) when is_function(Profil
     parse_options(Rest, State#mochiweb_socket_server{profile_fun=ProfileFun}).
 
 
-start_server(F, State=#mochiweb_socket_server{ssl=Ssl, name=Name}) ->
-    ok = prep_ssl(Ssl),
+start_server(State=#mochiweb_socket_server{ssl=Ssl, name=Name}) ->
+    case Ssl of
+        true ->
+            application:start(crypto),
+            application:start(public_key),
+            application:start(ssl);
+        false ->
+            void
+    end,
     case Name of
         undefined ->
-            gen_server:F(?MODULE, State, []);
+            gen_server:start_link(?MODULE, State, []);
         _ ->
-            gen_server:F(Name, ?MODULE, State, [])
+            gen_server:start_link(Name, ?MODULE, State, [])
     end.
-
-prep_ssl(true) ->
-    ok = mochiweb:ensure_started(crypto),
-    ok = mochiweb:ensure_started(public_key),
-    ok = mochiweb:ensure_started(ssl);
-prep_ssl(false) ->
-    ok.
 
 ensure_int(N) when is_integer(N) ->
     N;
@@ -179,7 +165,27 @@ init(State=#mochiweb_socket_server{ip=Ip, port=Port, backlog=Backlog, nodelay=No
         {_, _, _, _, _, _, _, _} -> % IPv6
             [inet6, {ip, Ip} | BaseOpts]
     end,
-    listen(Port, Opts, State).
+    case listen(Port, Opts, State) of
+        {stop, eacces} ->
+            case Port < 1024 of
+                true ->
+                    case catch fdsrv:start() of
+                        {ok, _} ->
+                            case fdsrv:bind_socket(tcp, Port) of
+                                {ok, Fd} ->
+                                    listen(Port, [{fd, Fd} | Opts], State);
+                                _ ->
+                                    {stop, fdsrv_bind_failed}
+                            end;
+                        _ ->
+                            {stop, fdsrv_start_failed}
+                    end;
+                false ->
+                    {stop, eacces}
+            end;
+        Other ->
+            Other
+    end.
 
 new_acceptor_pool(Listen,
                   State=#mochiweb_socket_server{acceptor_pool=Pool,
@@ -265,8 +271,15 @@ handle_cast(stop, State) ->
 
 terminate(Reason, State) when ?is_old_state(State) ->
     terminate(Reason, upgrade_state(State));
-terminate(_Reason, #mochiweb_socket_server{listen=Listen}) ->
-    mochiweb_socket:close(Listen).
+terminate(_Reason, #mochiweb_socket_server{listen=Listen, port=Port}) ->
+    mochiweb_socket:close(Listen),
+    case Port < 1024 of
+        true ->
+            catch fdsrv:stop(),
+            ok;
+        false ->
+            ok
+    end.
 
 code_change(_OldVsn, State, _Extra) ->
     State.
@@ -348,3 +361,4 @@ upgrade_state_test() ->
     ?assertEqual(CmpState, State).
 
 -endif.
+

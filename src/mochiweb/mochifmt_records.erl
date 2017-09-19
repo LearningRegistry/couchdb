@@ -9,15 +9,11 @@
 %%    M:format("{0.bar}", [#rec{bar=foo}]).
 %%    foo
 
--module(mochifmt_records).
+-module(mochifmt_records, [Recs]).
 -author('bob@mochimedia.com').
--export([new/1, get_value/3]).
+-export([get_value/2]).
 
-new([{_Rec, RecFields}]=Recs) when is_list(RecFields) ->
-    {?MODULE, Recs}.
-
-get_value(Key, Rec, {?MODULE, Recs})
-  when is_tuple(Rec) and is_atom(element(1, Rec)) ->
+get_value(Key, Rec) when is_tuple(Rec) and is_atom(element(1, Rec)) ->
     try begin
             Atom = list_to_existing_atom(Key),
             {_, Fields} = proplists:lookup(element(1, Rec), Recs),
@@ -25,7 +21,7 @@ get_value(Key, Rec, {?MODULE, Recs})
         end
     catch error:_ -> mochifmt:get_value(Key, Rec)
     end;
-get_value(Key, Args, {?MODULE, _Recs}) ->
+get_value(Key, Args) ->
     mochifmt:get_value(Key, Args).
 
 get_rec_index(Atom, [Atom | _], Index) ->
